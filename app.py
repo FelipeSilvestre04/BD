@@ -21,6 +21,7 @@ def init_db():
     
     # DROP todas as tabelas se existirem
     cursor.executescript("""
+        DROP TABLE IF EXISTS Revisor_Area;
         DROP TABLE IF EXISTS Revisao;
         DROP TABLE IF EXISTS Autoria;
         DROP TABLE IF EXISTS Artigo_Area;
@@ -40,50 +41,49 @@ def init_db():
         CREATE TABLE Usuario (
             ID_Usuario INTEGER PRIMARY KEY AUTOINCREMENT,
             Nome TEXT NOT NULL,
-            Email TEXT UNIQUE NOT NULL,
+            Email TEXT NOT NULL,
             Senha TEXT NOT NULL,
             Instituicao TEXT,
-            Data_Cadastro DATE DEFAULT CURRENT_DATE
+            Data_Cadastro DATE NOT NULL
         );
         
         CREATE TABLE Autor (
             ID_Usuario INTEGER PRIMARY KEY,
-            ORCID TEXT UNIQUE,
+            ORCID TEXT,
             Bio_Resumida TEXT,
-            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario) ON DELETE CASCADE
+            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario)
         );
         
         CREATE TABLE Revisor (
             ID_Usuario INTEGER PRIMARY KEY,
-            Areas_Interesse TEXT,
             Nota_Media REAL,
-            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario) ON DELETE CASCADE
+            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario)
         );
         
         CREATE TABLE Editor (
             ID_Usuario INTEGER PRIMARY KEY,
             Cargo TEXT,
             Ativo BOOLEAN DEFAULT 1,
-            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario) ON DELETE CASCADE
+            FOREIGN KEY (ID_Usuario) REFERENCES Usuario(ID_Usuario)
         );
         
         CREATE TABLE Area (
             Cod_Area INTEGER PRIMARY KEY AUTOINCREMENT,
-            Nome_Area TEXT NOT NULL UNIQUE,
+            Nome_Area TEXT NOT NULL,
             Descricao TEXT
         );
         
         CREATE TABLE Edicao (
             Cod_Edicao INTEGER PRIMARY KEY AUTOINCREMENT,
             Ano INTEGER NOT NULL,
-            Status TEXT CHECK(Status IN ('Aberta', 'Fechada', 'Publicada'))
+            Status TEXT
         );
         
         CREATE TABLE Edicao_Regular (
             Cod_Edicao INTEGER PRIMARY KEY,
             Volume INTEGER,
             Numero INTEGER,
-            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao) ON DELETE CASCADE
+            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao)
         );
         
         CREATE TABLE Chamada_Especial (
@@ -91,7 +91,7 @@ def init_db():
             Titulo_Tematico TEXT,
             Descricao TEXT,
             Data_Limite DATE,
-            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao) ON DELETE CASCADE
+            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao)
         );
         
         CREATE TABLE Artigo (
@@ -99,17 +99,17 @@ def init_db():
             Titulo TEXT NOT NULL,
             Resumo TEXT,
             Arquivo TEXT,
-            Status TEXT CHECK(Status IN ('Submetido', 'Em Revisao', 'Aceito', 'Rejeitado', 'Publicado')),
-            Cod_Edicao INTEGER,
-            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao) ON DELETE SET NULL
+            Status TEXT,
+            Cod_Edicao INTEGER NOT NULL,
+            FOREIGN KEY (Cod_Edicao) REFERENCES Edicao(Cod_Edicao)
         );
         
         CREATE TABLE Artigo_Area (
             Cod_Artigo INTEGER,
             Cod_Area INTEGER,
             PRIMARY KEY (Cod_Artigo, Cod_Area),
-            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo) ON DELETE CASCADE,
-            FOREIGN KEY (Cod_Area) REFERENCES Area(Cod_Area) ON DELETE CASCADE
+            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo),
+            FOREIGN KEY (Cod_Area) REFERENCES Area(Cod_Area)
         );
         
         CREATE TABLE Autoria (
@@ -117,41 +117,46 @@ def init_db():
             Cod_Artigo INTEGER,
             Ordem_Autoria INTEGER,
             PRIMARY KEY (Cod_Autor, Cod_Artigo),
-            FOREIGN KEY (Cod_Autor) REFERENCES Autor(ID_Usuario) ON DELETE CASCADE,
-            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo) ON DELETE CASCADE
+            FOREIGN KEY (Cod_Autor) REFERENCES Autor(ID_Usuario),
+            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo)
         );
         
         CREATE TABLE Revisao (
             Cod_Artigo INTEGER,
             Cod_Revisor INTEGER,
             Parecer TEXT,
-            Nota REAL CHECK(Nota >= 0 AND Nota <= 10),
+            Nota REAL,
             Data_Entrega DATE,
             PRIMARY KEY (Cod_Artigo, Cod_Revisor),
-            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo) ON DELETE CASCADE,
-            FOREIGN KEY (Cod_Revisor) REFERENCES Revisor(ID_Usuario) ON DELETE CASCADE
+            FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo),
+            FOREIGN KEY (Cod_Revisor) REFERENCES Revisor(ID_Usuario)
+        );
+        
+        CREATE TABLE Revisor_Area (
+            ID_Revisor INTEGER,
+            Cod_Area INTEGER,
+            PRIMARY KEY (ID_Revisor, Cod_Area),
+            FOREIGN KEY (ID_Revisor) REFERENCES Revisor(ID_Usuario),
+            FOREIGN KEY (Cod_Area) REFERENCES Area(Cod_Area)
         );
     """)
     
     # INSERT dados fictícios (DML)
     
-    # Usuários (15 usuários)
+    # Usuários (12 usuários)
     usuarios = [
-        ('Alan Turing', 'alan.turing@cs.ox.uk', 'enigma123', 'University of Oxford', '2023-01-10'),
-        ('Grace Hopper', 'grace.hopper@navy.mil', 'cobol456', 'US Naval Reserve', '2023-01-15'),
-        ('Ada Lovelace', 'ada.lovelace@math.uk', 'algorithm789', 'University of Cambridge', '2023-02-01'),
-        ('Donald Knuth', 'knuth@stanford.edu', 'tex2025', 'Stanford University', '2023-02-10'),
-        ('Barbara Liskov', 'liskov@mit.edu', 'abstraction5', 'MIT', '2023-02-20'),
-        ('Edsger Dijkstra', 'dijkstra@tue.nl', 'goto2bad', 'TU Eindhoven', '2023-03-01'),
-        ('John McCarthy', 'mccarthy@stanford.edu', 'lisp1958', 'Stanford University', '2023-03-05'),
-        ('Dennis Ritchie', 'ritchie@bell-labs.com', 'unix1971', 'Bell Labs', '2023-03-10'),
-        ('Ken Thompson', 'thompson@bell-labs.com', 'go2plan9', 'Bell Labs', '2023-03-15'),
-        ('Tim Berners-Lee', 'timbl@w3.org', 'www1989', 'CERN', '2023-04-01'),
-        ('Linus Torvalds', 'torvalds@linux.com', 'kernel2025', 'Linux Foundation', '2023-04-10'),
-        ('Bjarne Stroustrup', 'bjarne@tamu.edu', 'cpp1985', 'Texas A&M University', '2023-04-15'),
-        ('Guido van Rossum', 'guido@python.org', 'pythonic', 'Python Software Foundation', '2023-05-01'),
-        ('James Gosling', 'gosling@sun.com', 'java1995', 'Sun Microsystems', '2023-05-10'),
-        ('Margaret Hamilton', 'hamilton@nasa.gov', 'apollo11', 'NASA', '2023-05-15')
+        ('João Silva', 'joao.silva@univ.edu.br', 'senha123', 'Universidade A', '2023-01-15'),
+        ('Maria Santos', 'maria.santos@inst.org', 'senha456', 'Instituto B', '2023-02-20'),
+        ('Pedro Souza', 'pedro.souza@tech.com', 'senha789', 'Tech Solutions', '2023-03-10'),
+        ('Ana Oliveira', 'ana.oliveira@univ.edu.br', 'senhaabc', 'Universidade A', '2023-03-15'),
+        ('Carlos Pereira', 'carlos.pereira@univ.c', 'senhadef', 'Universidade C', '2023-01-10'),
+        ('Fernanda Costa', 'fernanda.costa@lab.net', 'senhaghi', 'Laboratório X', '2023-02-28'),
+        ('Lucas Almeida', 'lucas.almeida@univ.edu.br', 'senhajkl', 'Universidade A', '2023-04-05'),
+        ('Julia Lima', 'julia.lima@inst.org', 'senhamno', 'Instituto B', '2023-04-20'),
+        ('Marcos Rocha', 'marcos.rocha@editora.com', 'senhapqr', 'Editora Global', '2022-11-01'),
+        ('Patricia Gomes', 'patricia.gomes@univ.c', 'senhastu', 'Universidade C', '2022-12-15'),
+        ('Rafael Mendes', 'rafael.mendes@univ.edu.br', 'senhavwx', 'Universidade A', '2022-10-30'),
+        ('Sofia Martins', 'sofia.martins@tech.com', 'senhayz1', 'Tech Solutions', '2023-01-05')
     ]
     
     cursor.executemany("""
@@ -159,18 +164,12 @@ def init_db():
         VALUES (?, ?, ?, ?, ?)
     """, usuarios)
     
-    # Autores (10 autores - IDs 1 a 10)
+    # Autores (4 autores - IDs 1 a 4)
     autores = [
-        (1, '0000-0001-1111-1111', 'Pioneiro da computação e inteligência artificial'),
-        (2, '0000-0002-2222-2222', 'Desenvolveu o primeiro compilador'),
-        (3, '0000-0003-3333-3333', 'Primeira programadora da história'),
-        (4, '0000-0004-4444-4444', 'Especialista em análise de algoritmos'),
-        (5, '0000-0005-5555-5555', 'Criadora do princípio de substituição'),
-        (6, '0000-0006-6666-6666', 'Algoritmos de caminho mais curto'),
-        (7, '0000-0007-7777-7777', 'Inventor da linguagem Lisp'),
-        (8, '0000-0008-8888-8888', 'Co-criador do Unix e linguagem C'),
-        (9, '0000-0009-9999-9999', 'Co-criador do Unix'),
-        (10, '0000-0010-1010-1010', 'Inventor da World Wide Web')
+        (1, '0000-0001-2345-6789', 'Pesquisador em IA.'),
+        (2, '0000-0002-3456-7890', 'Especialista em Banco de Dados.'),
+        (3, '0000-0003-4567-8901', 'Engenheiro de Software Sênior.'),
+        (4, '0000-0004-5678-9012', 'Doutoranda em Redes.')
     ]
     
     cursor.executemany("""
@@ -178,22 +177,25 @@ def init_db():
         VALUES (?, ?, ?)
     """, autores)
     
-    # Revisores (3 revisores - IDs 11, 12, 13)
+    # Revisores (4 revisores - IDs 5 a 8)
     revisores = [
-        (11, 'Sistemas Operacionais, Kernel Development', 8.5),
-        (12, 'Linguagens de Programação, Compiladores', 9.0),
-        (13, 'Engenharia de Software, Web Development', 8.8)
+        (5, 9.5),
+        (6, 8.7),
+        (7, 9.0),
+        (8, 7.5)
     ]
     
     cursor.executemany("""
-        INSERT INTO Revisor (ID_Usuario, Areas_Interesse, Nota_Media) 
-        VALUES (?, ?, ?)
+        INSERT INTO Revisor (ID_Usuario, Nota_Media) 
+        VALUES (?, ?)
     """, revisores)
     
-    # Editores (2 editores - IDs 14, 15)
+    # Editores (4 editores - IDs 9 a 12)
     editores = [
-        (14, 'Editor-Chefe', 1),
-        (15, 'Editor Associado', 1)
+        (9, 'Editor Chefe', 1),
+        (10, 'Editor Associado', 1),
+        (11, 'Editor Convidado', 0),
+        (12, 'Editor Técnico', 1)
     ]
     
     cursor.executemany("""
@@ -203,16 +205,16 @@ def init_db():
     
     # Áreas (10 áreas)
     areas = [
-        ('Inteligência Artificial', 'Estudos sobre IA, ML e Deep Learning'),
-        ('Sistemas Operacionais', 'Desenvolvimento e arquitetura de SO'),
-        ('Banco de Dados', 'SGBDs, modelagem e otimização'),
-        ('Redes de Computadores', 'Protocolos, segurança e infraestrutura'),
-        ('Engenharia de Software', 'Metodologias, padrões e boas práticas'),
-        ('Algoritmos', 'Análise e desenvolvimento de algoritmos'),
-        ('Computação Gráfica', 'Renderização, modelagem 3D e visualização'),
-        ('Arquitetura de Computadores', 'Hardware, microprocessadores e sistemas embarcados'),
-        ('Segurança da Informação', 'Criptografia, ethical hacking e proteção de dados'),
-        ('Computação em Nuvem', 'Cloud computing, virtualização e escalabilidade')
+        ('Inteligência Artificial', 'Estudo de agentes inteligentes e aprendizado de máquina.'),
+        ('Banco de Dados', 'Gerenciamento, modelagem e otimização de dados.'),
+        ('Engenharia de Software', 'Processos, métodos e ferramentas para desenvolvimento.'),
+        ('Redes de Computadores', 'Comunicação de dados e protocolos.'),
+        ('Segurança da Informação', 'Proteção de sistemas e dados.'),
+        ('Sistemas Operacionais', 'Gerenciamento de recursos de hardware e software.'),
+        ('Interação Humano-Computador', 'Design e avaliação de interfaces.'),
+        ('Computação Gráfica', 'Processamento de imagens e renderização.'),
+        ('Bioinformática', 'Aplicação de computação em biologia.'),
+        ('Internet das Coisas', 'Conectividade de dispositivos embarcados.')
     ]
     
     cursor.executemany("""
@@ -222,16 +224,16 @@ def init_db():
     
     # Edições (10 edições)
     edicoes = [
-        (2023, 'Publicada'),
-        (2023, 'Publicada'),
-        (2025, 'Publicada'),
-        (2025, 'Aberta'),
-        (2025, 'Aberta'),
-        (2025, 'Aberta'),
-        (2025, 'Aberta'),
         (2023, 'Fechada'),
-        (2025, 'Fechada'),
-        (2025, 'Aberta')
+        (2023, 'Fechada'),
+        (2024, 'Publicada'),
+        (2024, 'Publicada'),
+        (2024, 'Em andamento'),
+        (2025, 'Aberta'),
+        (2025, 'Aberta'),
+        (2025, 'Planejada'),
+        (2025, 'Planejada'),
+        (2026, 'Planejada')
     ]
     
     cursor.executemany("""
@@ -239,15 +241,13 @@ def init_db():
         VALUES (?, ?)
     """, edicoes)
     
-    # Edições Regulares (7 regulares)
+    # Edições Regulares (5 regulares)
     edicoes_regulares = [
         (1, 10, 1),
         (2, 10, 2),
         (3, 11, 1),
         (4, 11, 2),
-        (5, 11, 3),
-        (6, 12, 1),
-        (7, 12, 2)
+        (5, 11, 3)
     ]
     
     cursor.executemany("""
@@ -255,11 +255,13 @@ def init_db():
         VALUES (?, ?, ?)
     """, edicoes_regulares)
     
-    # Chamadas Especiais (3 especiais)
+    # Chamadas Especiais (5 especiais)
     chamadas = [
-        (8, 'Inteligência Artificial em Saúde', 'Chamada especial sobre aplicações de IA na medicina', '2023-12-31'),
-        (9, 'Sustentabilidade em TI', 'Green Computing e eficiência energética', '2025-06-30'),
-        (10, 'Computação Quântica', 'Avanços recentes em computação quântica', '2025-12-31')
+        (6, 'Avanços em IA Generativa', 'Foco em LLMs e difusão.', '2025-06-30'),
+        (7, 'Segurança em IoT', 'Desafios de privacidade em dispositivos conectados.', '2025-07-15'),
+        (8, 'Big Data na Saúde', 'Análise de grandes volumes de dados médicos.', '2025-09-01'),
+        (9, 'Computação Quântica', 'Algoritmos e arquiteturas quânticas.', '2025-10-20'),
+        (10, 'Cidades Inteligentes', 'Tecnologia aplicada ao urbanismo.', '2026-01-15')
     ]
     
     cursor.executemany("""
@@ -267,23 +269,18 @@ def init_db():
         VALUES (?, ?, ?, ?)
     """, chamadas)
     
-    # Artigos (15 artigos) - Garantindo que Alan Turing (ID 1) tenha 2 artigos
+    # Artigos (10 artigos)
     artigos = [
-        ('On Computable Numbers', 'Artigo fundamental sobre computabilidade', 'turing_1936.pdf', 'Publicado', 1),
-        ('Computing Machinery and Intelligence', 'Propõe o teste de Turing', 'turing_test.pdf', 'Publicado', 2),
-        ('The Education of a Computer', 'Sobre programação de computadores', 'hopper_1952.pdf', 'Publicado', 1),
-        ('Notes on the Analytical Engine', 'Primeiro algoritmo computacional', 'lovelace_1843.pdf', 'Publicado', 3),
-        ('The Art of Computer Programming Vol 1', 'Análise fundamental de algoritmos', 'knuth_vol1.pdf', 'Aceito', 4),
-        ('Data Abstraction and Hierarchy', 'Princípios de abstração de dados', 'liskov_1988.pdf', 'Publicado', 2),
-        ('A Note on Two Problems in Connexion with Graphs', 'Algoritmo de Dijkstra', 'dijkstra_1959.pdf', 'Publicado', 3),
-        ('Recursive Functions of Symbolic Expressions', 'Fundamentos do Lisp', 'mccarthy_1960.pdf', 'Em Revisao', 4),
-        ('The UNIX Time-Sharing System', 'Descrição do sistema Unix', 'ritchie_1974.pdf', 'Aceito', 5),
-        ('Information Management: A Proposal', 'Proposta inicial da WWW', 'berners_lee_1989.pdf', 'Publicado', 1),
-        ('Linux: A Portable Operating System', 'Arquitetura do kernel Linux', 'torvalds_1997.pdf', 'Em Revisao', 6),
-        ('The C++ Programming Language', 'Design e evolução do C++', 'stroustrup_1985.pdf', 'Submetido', 7),
-        ('Python Tutorial', 'Introdução à linguagem Python', 'van_rossum_1995.pdf', 'Aceito', 5),
-        ('The Java Language Specification', 'Especificação completa do Java', 'gosling_1996.pdf', 'Rejeitado', 8),
-        ('Apollo Guidance Computer', 'Software do programa Apollo', 'hamilton_1969.pdf', 'Publicado', 9)
+        ('Uso de Redes Neurais em Finanças', 'Análise preditiva de mercado.', 'artigo1.pdf', 'Aceito', 1),
+        ('Otimização de Queries SQL', 'Novas técnicas de indexação.', 'artigo2.pdf', 'Publicado', 1),
+        ('Metodologias Ágeis em Startups', 'Estudo de caso.', 'artigo3.pdf', 'Rejeitado', 2),
+        ('Protocolos de Roteamento', 'Comparação entre OSPF e BGP.', 'artigo4.pdf', 'Publicado', 2),
+        ('Criptografia Pós-Quântica', 'Algoritmos resistentes a computadores quânticos.', 'artigo5.pdf', 'Em Revisão', 6),
+        ('Interface para Idosos', 'Acessibilidade digital.', 'artigo6.pdf', 'Submetido', 7),
+        ('Renderização em Tempo Real', 'Técnicas de Ray Tracing.', 'artigo7.pdf', 'Aceito', 3),
+        ('Genômica Computacional', 'Alinhamento de sequências.', 'artigo8.pdf', 'Em Revisão', 8),
+        ('Sensores em Agricultura', 'IoT no campo.', 'artigo9.pdf', 'Submetido', 9),
+        ('Virtualização de Servidores', 'Docker e Kubernetes.', 'artigo10.pdf', 'Publicado', 4)
     ]
     
     cursor.executemany("""
@@ -293,22 +290,18 @@ def init_db():
     
     # Artigo_Area (vincular artigos com áreas)
     artigo_areas = [
-        (1, 1), (1, 6),  # Turing artigo 1: IA e Algoritmos
-        (2, 1),          # Turing artigo 2: IA
-        (3, 5),          # Hopper: Eng. Software
-        (4, 6),          # Lovelace: Algoritmos
-        (5, 6),          # Knuth: Algoritmos
-        (6, 5),          # Liskov: Eng. Software
-        (7, 6),          # Dijkstra: Algoritmos
-        (8, 5),          # McCarthy: Eng. Software
-        (9, 2),          # Ritchie: SO
-        (10, 4), (10, 5),# Berners-Lee: Redes e Eng. Software
-        (11, 2),         # Torvalds: SO
-        (12, 5),         # Stroustrup: Eng. Software
-        (13, 5),         # Van Rossum: Eng. Software
-        (14, 5),         # Gosling: Eng. Software
-        (15, 8),         # Hamilton: Arquitetura
-        (11, 9),         # Torvalds: Segurança (área sem artigo dedicado para query 6)
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+        (6, 7),
+        (7, 8),
+        (8, 9),
+        (9, 10),
+        (10, 6),
+        (1, 2),
+        (9, 4)
     ]
     
     cursor.executemany("""
@@ -316,24 +309,20 @@ def init_db():
         VALUES (?, ?)
     """, artigo_areas)
     
-    # Autoria (garantir que Alan Turing - ID 1 - tenha 2 artigos: artigos 1 e 2)
+    # Autoria
     autorias = [
-        (1, 1, 1),   # Alan Turing - Artigo 1
-        (1, 2, 1),   # Alan Turing - Artigo 2
-        (2, 3, 1),   # Grace Hopper - Artigo 3
-        (3, 4, 1),   # Ada Lovelace - Artigo 4
-        (4, 5, 1),   # Donald Knuth - Artigo 5
-        (5, 6, 1),   # Barbara Liskov - Artigo 6
-        (6, 7, 1),   # Edsger Dijkstra - Artigo 7
-        (7, 8, 1),   # John McCarthy - Artigo 8
-        (8, 9, 1),   # Dennis Ritchie - Artigo 9
-        (9, 9, 2),   # Ken Thompson - Artigo 9 (co-autor)
-        (10, 10, 1), # Tim Berners-Lee - Artigo 10
-        (1, 11, 1),  # Linus Torvalds - Artigo 11
-        (2, 12, 1),  # Bjarne Stroustrup - Artigo 12
-        (3, 13, 1),  # Guido van Rossum - Artigo 13
-        (4, 14, 1),  # James Gosling - Artigo 14
-        (5, 15, 1),  # Margaret Hamilton - Artigo 15
+        (1, 1, 1),
+        (2, 2, 1),
+        (3, 3, 1),
+        (4, 4, 1),
+        (1, 5, 1),
+        (2, 5, 2),
+        (3, 6, 1),
+        (4, 7, 1),
+        (1, 8, 1),
+        (2, 9, 1),
+        (3, 10, 1),
+        (4, 10, 2)
     ]
     
     cursor.executemany("""
@@ -341,23 +330,37 @@ def init_db():
         VALUES (?, ?, ?)
     """, autorias)
     
-    # Revisões (15 revisões com notas variadas)
+    # Revisor_Area (vincular revisores com áreas)
+    revisor_areas = [
+        (5, 1),
+        (5, 2),
+        (6, 3),
+        (6, 4),
+        (7, 5),
+        (7, 6),
+        (8, 7),
+        (8, 8),
+        (8, 9),
+        (5, 10)
+    ]
+    
+    cursor.executemany("""
+        INSERT INTO Revisor_Area (ID_Revisor, Cod_Area) 
+        VALUES (?, ?)
+    """, revisor_areas)
+    
+    # Revisões (10 revisões)
     revisoes = [
-        (1, 11, 'Excelente trabalho, bem fundamentado', 9.5, '2025-01-15'),
-        (2, 11, 'Muito bom, mas poderia expandir a metodologia', 8.7, '2025-01-20'),
-        (3, 12, 'Trabalho interessante mas precisa de melhorias', 7.2, '2025-02-10'),
-        (4, 12, 'Boa contribuição para a área', 8.0, '2025-02-15'),
-        (5, 13, 'Artigo sólido com aplicações práticas', 8.5, '2025-03-01'),
-        (7, 11, 'Precisa revisar a seção de resultados', 6.8, '2025-01-25'),
-        (8, 12, 'Contribuição limitada, rejeitar', 5.5, '2025-02-20'),
-        (9, 13, 'Aceitar com revisões menores', 8.2, '2025-03-05'),
-        (10, 11, 'Trabalho de alta qualidade', 9.0, '2025-01-30'),
-        (11, 12, 'Necessita de experimentos adicionais', 7.0, '2025-02-25'),
-        (1, 13, 'Muito promissor', 8.8, '2025-03-10'),
-        (2, 13, 'Bem escrito e fundamentado', 9.2, '2025-03-12'),
-        (3, 11, 'Excelente estado da arte', 9.3, '2025-02-01'),
-        (4, 11, 'Aceitar sem ressalvas', 9.8, '2025-02-05'),
-        (5, 12, 'Trabalho satisfatório', 7.5, '2025-03-01')
+        (1, 5, 'Excelente trabalho, metodologia sólida.', 9.5, '2023-02-10'),
+        (2, 5, 'Bom, mas precisa de revisão bibliográfica.', 7.0, '2023-02-12'),
+        (3, 6, 'Não atende aos requisitos da chamada.', 4.0, '2023-03-01'),
+        (4, 6, 'Muito relevante para a área.', 8.5, '2023-03-05'),
+        (5, 7, 'Inovador, recomendo publicação.', 9.0, '2025-01-10'),
+        (6, 8, 'Amostragem pequena.', 6.0, '2025-02-15'),
+        (7, 8, 'Visualmente impressionante.', 9.0, '2024-05-20'),
+        (8, 5, 'Análise estatística fraca.', 5.5, '2025-03-01'),
+        (9, 6, 'Aplicação prática interessante.', 8.0, '2025-04-10'),
+        (10, 7, 'Bem escrito e fundamentado.', 9.0, '2024-06-01')
     ]
     
     cursor.executemany("""
@@ -394,180 +397,100 @@ def execute_query(query):
     except Exception as e:
         return None, str(e)
 
-# Dicionário com as consultas (12 obrigatórias + exemplos de INSERT/UPDATE/DELETE)
+# Dicionário com as 12 consultas obrigatórias
 CONSULTAS_PRONTAS = {
     "Selecione uma consulta...": "",
     
-    "1. Listar Artigos e Autores": """
-SELECT 
-    A.Cod_Artigo,
-    A.Titulo AS Titulo_Artigo,
-    U.Nome AS Nome_Autor,
-    AU.Ordem_Autoria,
-    A.Status
+    "1. Listar Artigos e Anos de Edição": """
+SELECT A.Titulo, E.Ano, A.Status
 FROM Artigo A
-INNER JOIN Autoria AU ON A.Cod_Artigo = AU.Cod_Artigo
-INNER JOIN Usuario U ON AU.Cod_Autor = U.ID_Usuario
-ORDER BY A.Cod_Artigo, AU.Ordem_Autoria;
+JOIN Edicao E ON A.Cod_Edicao = E.Cod_Edicao;
 """,
     
-    "2. Artigos, Áreas e Edições": """
-SELECT 
-    A.Cod_Artigo,
-    A.Titulo AS Titulo_Artigo,
-    AR.Nome_Area,
-    E.Ano AS Ano_Edicao,
-    E.Status AS Status_Edicao
-FROM Artigo A
-INNER JOIN Artigo_Area AA ON A.Cod_Artigo = AA.Cod_Artigo
-INNER JOIN Area AR ON AA.Cod_Area = AR.Cod_Area
-INNER JOIN Edicao E ON A.Cod_Edicao = E.Cod_Edicao
-ORDER BY A.Cod_Artigo;
-""",
-    
-    "3. Revisores e Notas": """
-SELECT 
-    U.Nome AS Nome_Revisor,
-    A.Titulo AS Titulo_Artigo,
-    R.Nota,
-    R.Parecer,
-    R.Data_Entrega
-FROM Revisao R
-INNER JOIN Revisor REV ON R.Cod_Revisor = REV.ID_Usuario
-INNER JOIN Usuario U ON REV.ID_Usuario = U.ID_Usuario
-INNER JOIN Artigo A ON R.Cod_Artigo = A.Cod_Artigo
-ORDER BY R.Nota DESC;
-""",
-    
-    "4. Chamadas Especiais": """
-SELECT 
-    CE.Titulo_Tematico,
-    CE.Descricao,
-    CE.Data_Limite,
-    E.Ano,
-    E.Status
-FROM Chamada_Especial CE
-INNER JOIN Edicao E ON CE.Cod_Edicao = E.Cod_Edicao
-ORDER BY CE.Data_Limite;
-""",
-    
-    "5. Editores e Cargos": """
-SELECT 
-    U.Nome,
-    U.Email,
-    U.Instituicao,
-    ED.Cargo,
-    CASE WHEN ED.Ativo = 1 THEN 'Sim' ELSE 'Não' END AS Ativo
-FROM Editor ED
-INNER JOIN Usuario U ON ED.ID_Usuario = U.ID_Usuario
-ORDER BY ED.Cargo;
-""",
-    
-    "6. Áreas sem artigos": """
-SELECT 
-    AR.Cod_Area,
-    AR.Nome_Area,
-    AR.Descricao,
-    COUNT(AA.Cod_Artigo) AS Num_Artigos
-FROM Area AR
-LEFT JOIN Artigo_Area AA ON AR.Cod_Area = AA.Cod_Area
-GROUP BY AR.Cod_Area, AR.Nome_Area, AR.Descricao
-HAVING COUNT(AA.Cod_Artigo) = 0;
-""",
-    
-    "7. Usuários vs Autores": """
-SELECT 
-    U.ID_Usuario,
-    U.Nome,
-    U.Email,
-    U.Instituicao,
-    CASE WHEN AU.ID_Usuario IS NULL THEN 'Não' ELSE 'Sim' END AS Eh_Autor,
-    AU.ORCID
+    "2. Autores e Seus Artigos": """
+SELECT U.Nome AS Autor, AR.Titulo
 FROM Usuario U
-LEFT JOIN Autor AU ON U.ID_Usuario = AU.ID_Usuario
-ORDER BY U.Nome;
+JOIN Autoria AUT ON U.ID_Usuario = AUT.Cod_Autor
+JOIN Artigo AR ON AUT.Cod_Artigo = AR.Cod_Artigo;
 """,
     
-    "8. Média de Notas por Status": """
-SELECT 
-    A.Status,
-    COUNT(*) AS Total_Revisoes,
-    ROUND(AVG(R.Nota), 2) AS Nota_Media,
-    ROUND(MIN(R.Nota), 2) AS Nota_Minima,
-    ROUND(MAX(R.Nota), 2) AS Nota_Maxima
+    "3. Revisores e Suas Áreas de Conhecimento": """
+SELECT U.Nome AS Revisor, AREA.Nome_Area
+FROM Usuario U
+JOIN Revisor R ON U.ID_Usuario = R.ID_Usuario
+JOIN Revisor_Area RA ON R.ID_Usuario = RA.ID_Revisor
+JOIN Area AREA ON RA.Cod_Area = AREA.Cod_Area;
+""",
+    
+    "4. Artigos com Pareceres e Notas": """
+SELECT A.Titulo, U.Nome AS Revisor, R.Nota
 FROM Artigo A
-INNER JOIN Revisao R ON A.Cod_Artigo = R.Cod_Artigo
-GROUP BY A.Status
-ORDER BY Nota_Media DESC;
+JOIN Revisao R ON A.Cod_Artigo = R.Cod_Artigo
+JOIN Usuario U ON R.Cod_Revisor = U.ID_Usuario;
 """,
     
-    "9. Contagem de Artigos por Área": """
-SELECT 
-    AR.Nome_Area,
-    COUNT(AA.Cod_Artigo) AS Total_Artigos
-FROM Area AR
-INNER JOIN Artigo_Area AA ON AR.Cod_Area = AA.Cod_Area
-GROUP BY AR.Nome_Area
-ORDER BY Total_Artigos DESC;
+    "5. Chamadas Especiais e Datas Limite": """
+SELECT CE.Titulo_Tematico, CE.Data_Limite, E.Status
+FROM Chamada_Especial CE
+JOIN Edicao E ON CE.Cod_Edicao = E.Cod_Edicao;
 """,
     
-    "10. Total de Revisões por Revisor": """
-SELECT 
-    U.Nome AS Nome_Revisor,
-    COUNT(*) AS Total_Revisoes,
-    ROUND(AVG(R.Nota), 2) AS Nota_Media_Atribuida
-FROM Revisor REV
-INNER JOIN Usuario U ON REV.ID_Usuario = U.ID_Usuario
-INNER JOIN Revisao R ON REV.ID_Usuario = R.Cod_Revisor
+    "6. Usuários e Cargos de Editores (LEFT JOIN)": """
+SELECT U.Nome, E.Cargo
+FROM Usuario U
+LEFT JOIN Editor E ON U.ID_Usuario = E.ID_Usuario;
+""",
+    
+    "7. Áreas e Artigos Vinculados (LEFT JOIN)": """
+SELECT AREA.Nome_Area, AR.Titulo
+FROM Area AREA
+LEFT JOIN Artigo_Area AA ON AREA.Cod_Area = AA.Cod_Area
+LEFT JOIN Artigo AR ON AA.Cod_Artigo = AR.Cod_Artigo;
+""",
+    
+    "8. Quantidade de Artigos por Status (HAVING)": """
+SELECT Status, COUNT(*) AS Qtd_Artigos
+FROM Artigo
+GROUP BY Status
+HAVING COUNT(*) > 1
+ORDER BY Qtd_Artigos DESC;
+""",
+    
+    "9. Média de Notas por Revisor (HAVING)": """
+SELECT U.Nome AS Revisor, AVG(R.Nota) AS Media_Notas_Dadas
+FROM Usuario U
+JOIN Revisao R ON U.ID_Usuario = R.Cod_Revisor
 GROUP BY U.Nome
-HAVING COUNT(*) >= 1
-ORDER BY Total_Revisoes DESC;
+HAVING AVG(R.Nota) > 7.0
+ORDER BY Media_Notas_Dadas DESC;
 """,
     
-    "11. Nota Máxima/Mínima por Ano": """
-SELECT 
-    E.Ano,
-    COUNT(DISTINCT A.Cod_Artigo) AS Total_Artigos,
-    ROUND(MAX(R.Nota), 2) AS Nota_Maxima,
-    ROUND(MIN(R.Nota), 2) AS Nota_Minima,
-    ROUND(AVG(R.Nota), 2) AS Nota_Media
+    "10. Áreas com 2+ Revisores": """
+SELECT A.Nome_Area, COUNT(RA.ID_Revisor) AS Qtd_Revisores
+FROM Area A
+JOIN Revisor_Area RA ON A.Cod_Area = RA.Cod_Area
+GROUP BY A.Nome_Area
+HAVING COUNT(RA.ID_Revisor) >= 2
+ORDER BY A.Nome_Area ASC;
+""",
+    
+    "11. Edições por Soma de Notas (HAVING)": """
+SELECT E.Ano, SUM(REV.Nota) AS Soma_Notas
 FROM Edicao E
-INNER JOIN Artigo A ON E.Cod_Edicao = A.Cod_Edicao
-INNER JOIN Revisao R ON A.Cod_Artigo = R.Cod_Artigo
+JOIN Artigo A ON E.Cod_Edicao = A.Cod_Edicao
+JOIN Revisao REV ON A.Cod_Artigo = REV.Cod_Artigo
 GROUP BY E.Ano
-ORDER BY E.Ano;
+HAVING SUM(REV.Nota) > 10
+ORDER BY Soma_Notas DESC;
 """,
     
-    "12. Autores com mais de 1 Artigo": """
-SELECT 
-    U.Nome AS Nome_Autor,
-    U.Email,
-    AU.ORCID,
-    COUNT(AUT.Cod_Artigo) AS Total_Artigos
-FROM Autor AU
-INNER JOIN Usuario U ON AU.ID_Usuario = U.ID_Usuario
-INNER JOIN Autoria AUT ON AU.ID_Usuario = AUT.Cod_Autor
-GROUP BY U.Nome, U.Email, AU.ORCID
-HAVING COUNT(AUT.Cod_Artigo) > 1
+    "12. Contagem de Artigos por Autor": """
+SELECT U.Nome AS Autor, COUNT(AUT.Cod_Artigo) AS Total_Artigos
+FROM Usuario U
+JOIN Autoria AUT ON U.ID_Usuario = AUT.Cod_Autor
+GROUP BY U.Nome
+HAVING COUNT(AUT.Cod_Artigo) >= 1
 ORDER BY Total_Artigos DESC;
-""",
-    
-    "--- EXEMPLOS DE ESCRITA ---": "",
-    
-    "INSERT - Novo Usuário": """
-INSERT INTO Usuario (Nome, Email, Senha, Instituicao, Data_Cadastro)
-VALUES ('Novo Autor', 'novo.autor@exemplo.com', 'senha123', 'Universidade Exemplo', '2025-01-15');
-""",
-    
-    "UPDATE - Atualizar Status de Artigo": """
-UPDATE Artigo 
-SET Status = 'Aceito'
-WHERE Cod_Artigo = 12;
-""",
-    
-    "DELETE - Remover Revisão": """
-DELETE FROM Revisao
-WHERE Cod_Artigo = 1 AND Cod_Revisor = 11;
 """
 }
 
