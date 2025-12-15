@@ -122,12 +122,12 @@ def init_db():
         );
         
         CREATE TABLE Revisao (
-            Cod_Revisao INTEGER PRIMARY KEY AUTOINCREMENT,
             Cod_Artigo INTEGER,
             Cod_Revisor INTEGER,
             Parecer TEXT,
             Nota REAL CHECK(Nota >= 0 AND Nota <= 10),
             Data_Entrega DATE,
+            PRIMARY KEY (Cod_Artigo, Cod_Revisor),
             FOREIGN KEY (Cod_Artigo) REFERENCES Artigo(Cod_Artigo) ON DELETE CASCADE,
             FOREIGN KEY (Cod_Revisor) REFERENCES Revisor(ID_Usuario) ON DELETE CASCADE
         );
@@ -140,14 +140,14 @@ def init_db():
         ('Alan Turing', 'alan.turing@cs.ox.uk', 'enigma123', 'University of Oxford', '2023-01-10'),
         ('Grace Hopper', 'grace.hopper@navy.mil', 'cobol456', 'US Naval Reserve', '2023-01-15'),
         ('Ada Lovelace', 'ada.lovelace@math.uk', 'algorithm789', 'University of Cambridge', '2023-02-01'),
-        ('Donald Knuth', 'knuth@stanford.edu', 'tex2024', 'Stanford University', '2023-02-10'),
+        ('Donald Knuth', 'knuth@stanford.edu', 'tex2025', 'Stanford University', '2023-02-10'),
         ('Barbara Liskov', 'liskov@mit.edu', 'abstraction5', 'MIT', '2023-02-20'),
         ('Edsger Dijkstra', 'dijkstra@tue.nl', 'goto2bad', 'TU Eindhoven', '2023-03-01'),
         ('John McCarthy', 'mccarthy@stanford.edu', 'lisp1958', 'Stanford University', '2023-03-05'),
         ('Dennis Ritchie', 'ritchie@bell-labs.com', 'unix1971', 'Bell Labs', '2023-03-10'),
         ('Ken Thompson', 'thompson@bell-labs.com', 'go2plan9', 'Bell Labs', '2023-03-15'),
         ('Tim Berners-Lee', 'timbl@w3.org', 'www1989', 'CERN', '2023-04-01'),
-        ('Linus Torvalds', 'torvalds@linux.com', 'kernel2024', 'Linux Foundation', '2023-04-10'),
+        ('Linus Torvalds', 'torvalds@linux.com', 'kernel2025', 'Linux Foundation', '2023-04-10'),
         ('Bjarne Stroustrup', 'bjarne@tamu.edu', 'cpp1985', 'Texas A&M University', '2023-04-15'),
         ('Guido van Rossum', 'guido@python.org', 'pythonic', 'Python Software Foundation', '2023-05-01'),
         ('James Gosling', 'gosling@sun.com', 'java1995', 'Sun Microsystems', '2023-05-10'),
@@ -224,13 +224,13 @@ def init_db():
     edicoes = [
         (2023, 'Publicada'),
         (2023, 'Publicada'),
-        (2024, 'Publicada'),
-        (2024, 'Aberta'),
-        (2024, 'Aberta'),
+        (2025, 'Publicada'),
+        (2025, 'Aberta'),
+        (2025, 'Aberta'),
         (2025, 'Aberta'),
         (2025, 'Aberta'),
         (2023, 'Fechada'),
-        (2024, 'Fechada'),
+        (2025, 'Fechada'),
         (2025, 'Aberta')
     ]
     
@@ -258,7 +258,7 @@ def init_db():
     # Chamadas Especiais (3 especiais)
     chamadas = [
         (8, 'Inteligência Artificial em Saúde', 'Chamada especial sobre aplicações de IA na medicina', '2023-12-31'),
-        (9, 'Sustentabilidade em TI', 'Green Computing e eficiência energética', '2024-06-30'),
+        (9, 'Sustentabilidade em TI', 'Green Computing e eficiência energética', '2025-06-30'),
         (10, 'Computação Quântica', 'Avanços recentes em computação quântica', '2025-12-31')
     ]
     
@@ -343,21 +343,21 @@ def init_db():
     
     # Revisões (15 revisões com notas variadas)
     revisoes = [
-        (1, 11, 'Excelente trabalho, bem fundamentado', 9.5, '2024-01-15'),
-        (2, 11, 'Muito bom, mas poderia expandir a metodologia', 8.7, '2024-01-20'),
-        (3, 12, 'Trabalho interessante mas precisa de melhorias', 7.2, '2024-02-10'),
-        (4, 12, 'Boa contribuição para a área', 8.0, '2024-02-15'),
-        (5, 13, 'Artigo sólido com aplicações práticas', 8.5, '2024-03-01'),
-        (7, 11, 'Precisa revisar a seção de resultados', 6.8, '2024-01-25'),
-        (8, 12, 'Contribuição limitada, rejeitar', 5.5, '2024-02-20'),
-        (9, 13, 'Aceitar com revisões menores', 8.2, '2024-03-05'),
-        (10, 11, 'Trabalho de alta qualidade', 9.0, '2024-01-30'),
-        (11, 12, 'Necessita de experimentos adicionais', 7.0, '2024-02-25'),
-        (1, 13, 'Muito promissor', 8.8, '2024-03-10'),
-        (2, 13, 'Bem escrito e fundamentado', 9.2, '2024-03-12'),
-        (3, 11, 'Excelente estado da arte', 9.3, '2024-02-01'),
-        (4, 11, 'Aceitar sem ressalvas', 9.8, '2024-02-05'),
-        (5, 12, 'Trabalho satisfatório', 7.5, '2024-03-01')
+        (1, 11, 'Excelente trabalho, bem fundamentado', 9.5, '2025-01-15'),
+        (2, 11, 'Muito bom, mas poderia expandir a metodologia', 8.7, '2025-01-20'),
+        (3, 12, 'Trabalho interessante mas precisa de melhorias', 7.2, '2025-02-10'),
+        (4, 12, 'Boa contribuição para a área', 8.0, '2025-02-15'),
+        (5, 13, 'Artigo sólido com aplicações práticas', 8.5, '2025-03-01'),
+        (7, 11, 'Precisa revisar a seção de resultados', 6.8, '2025-01-25'),
+        (8, 12, 'Contribuição limitada, rejeitar', 5.5, '2025-02-20'),
+        (9, 13, 'Aceitar com revisões menores', 8.2, '2025-03-05'),
+        (10, 11, 'Trabalho de alta qualidade', 9.0, '2025-01-30'),
+        (11, 12, 'Necessita de experimentos adicionais', 7.0, '2025-02-25'),
+        (1, 13, 'Muito promissor', 8.8, '2025-03-10'),
+        (2, 13, 'Bem escrito e fundamentado', 9.2, '2025-03-12'),
+        (3, 11, 'Excelente estado da arte', 9.3, '2025-02-01'),
+        (4, 11, 'Aceitar sem ressalvas', 9.8, '2025-02-05'),
+        (5, 12, 'Trabalho satisfatório', 7.5, '2025-03-01')
     ]
     
     cursor.executemany("""
@@ -491,7 +491,7 @@ ORDER BY U.Nome;
     "8. Média de Notas por Status": """
 SELECT 
     A.Status,
-    COUNT(R.Cod_Revisao) AS Total_Revisoes,
+    COUNT(*) AS Total_Revisoes,
     ROUND(AVG(R.Nota), 2) AS Nota_Media,
     ROUND(MIN(R.Nota), 2) AS Nota_Minima,
     ROUND(MAX(R.Nota), 2) AS Nota_Maxima
@@ -514,13 +514,13 @@ ORDER BY Total_Artigos DESC;
     "10. Total de Revisões por Revisor": """
 SELECT 
     U.Nome AS Nome_Revisor,
-    COUNT(R.Cod_Revisao) AS Total_Revisoes,
+    COUNT(*) AS Total_Revisoes,
     ROUND(AVG(R.Nota), 2) AS Nota_Media_Atribuida
 FROM Revisor REV
 INNER JOIN Usuario U ON REV.ID_Usuario = U.ID_Usuario
 INNER JOIN Revisao R ON REV.ID_Usuario = R.Cod_Revisor
 GROUP BY U.Nome
-HAVING COUNT(R.Cod_Revisao) >= 1
+HAVING COUNT(*) >= 1
 ORDER BY Total_Revisoes DESC;
 """,
     
@@ -567,7 +567,7 @@ WHERE Cod_Artigo = 12;
     
     "DELETE - Remover Revisão": """
 DELETE FROM Revisao
-WHERE Cod_Revisao = 15;
+WHERE Cod_Artigo = 1 AND Cod_Revisor = 11;
 """
 }
 
@@ -707,6 +707,6 @@ if limpar:
 st.divider()
 st.markdown("""
 <div style='text-align: center; color: gray; padding: 20px;'>
-    <small>Sistema desenvolvido para o Trabalho Final de Banco de Dados | 2024</small>
+    <small>Sistema desenvolvido para o Trabalho Final de Banco de Dados | 2025</small>
 </div>
 """, unsafe_allow_html=True)

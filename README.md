@@ -124,7 +124,7 @@ O banco possui **12 tabelas** organizadas em 4 módulos principais:
 - **Artigo**: Artigos submetidos (Título, Resumo, Status)
 - **Artigo_Area**: Relação N:N entre artigos e áreas
 - **Autoria**: Relação entre autores e artigos (com ordem)
-- **Revisao**: Revisões de artigos (Parecer, Nota, Data)
+- **Revisao**: Revisões de artigos (Parecer, Nota, Data) - PK composta: (Cod_Artigo, Cod_Revisor)
 
 ### Diagrama Simplificado
 
@@ -233,12 +233,14 @@ BD/
 - [ ] Histórico de consultas executadas
 - [ ] Modo escuro
 
-## Autor
+## Grupo
 
-**Felipe Silvestre**  
-Universidade Federal de São Paulo (UNIFESP)  
-Trabalho Final - Disciplina de Banco de Dados  
-📧 felipe.silvestre@unifesp.br
+**Trabalho Final - Disciplina de Banco de Dados**  
+Universidade Federal de São Paulo (UNIFESP)
+
+- Felipe Silvestre Cardoso Roberto - 170 425
+- Abner Augusto Diniz - 168 476
+- João Vitor de Moura - 168 887
 
 ## Licença
 
@@ -246,4 +248,4 @@ Este projeto foi desenvolvido para fins educacionais como parte do Trabalho Fina
 
 ---
 
-**Desenvolvido com ❤️ usando Python e Streamlit**
+
