@@ -1,10 +1,8 @@
 import sqlite3
 import pandas as pd
 
-# Caminho do banco de dados
 DB_PATH = "submissao.db"
 
-# Dicionário com as 12 consultas obrigatórias aprovadas pela professora
 CONSULTAS = {
     1: {
         "nome": "Listar Artigos e Anos de Edição",
@@ -136,7 +134,6 @@ ORDER BY Total_Artigos DESC;
 }
 
 def executar_query(conn, sql):
-    """Executa uma query e retorna o resultado como DataFrame"""
     try:
         df = pd.read_sql_query(sql, conn)
         return df, None
@@ -144,7 +141,6 @@ def executar_query(conn, sql):
         return None, str(e)
 
 def imprimir_resultado(num, nome, sql, df, erro=None):
-    """Imprime o resultado de uma query no formato especificado"""
     print(f"\n{'=' * 70}")
     print(f"--- {num}. {nome} ---")
     print(f"\nSQL:{sql}")
@@ -153,12 +149,10 @@ def imprimir_resultado(num, nome, sql, df, erro=None):
         print(f"\n❌ ERRO: {erro}")
     elif df is not None and not df.empty:
         print(f"\nRESULTADO:")
-        # Cabeçalho com os nomes das colunas
         colunas = " | ".join(df.columns)
         print(colunas)
         print("-" * 70)
         
-        # Imprimir cada linha
         for idx, row in df.iterrows():
             valores = tuple(row)
             print(valores)
@@ -170,17 +164,14 @@ def imprimir_resultado(num, nome, sql, df, erro=None):
     print(f"{'=' * 70}\n")
 
 def main():
-    """Função principal que executa todas as queries"""
     print("\n" + "=" * 70)
     print("EXECUÇÃO DE TODAS AS QUERIES - TRABALHO FINAL DE BANCO DE DADOS")
     print("=" * 70)
     
     try:
-        # Conecta ao banco de dados
         conn = sqlite3.connect(DB_PATH)
         print(f"\n✓ Conectado ao banco: {DB_PATH}")
         
-        # Executa cada consulta
         for num in sorted(CONSULTAS.keys()):
             consulta = CONSULTAS[num]
             nome = consulta["nome"]
@@ -189,7 +180,6 @@ def main():
             df, erro = executar_query(conn, sql)
             imprimir_resultado(num, nome, sql, df, erro)
         
-        # Fecha conexão
         conn.close()
         print(f"\n✓ Conexão fechada")
         

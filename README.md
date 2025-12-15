@@ -7,8 +7,8 @@ Sistema de gerenciamento de submissão de artigos científicos desenvolvido como
 ## Funcionalidades
 
 - **Gerenciamento Completo de Banco de Dados**
-  - Criação automática do schema SQLite com 12 tabelas relacionadas
-  - População automática com dados fictícios (15 usuários, 15 artigos, 15 revisões)
+  - Criação automática do schema SQLite com 13 tabelas relacionadas
+  - População automática com dados fictícios (12 usuários, 10 artigos, 10 revisões)
   - Botão de reset para reinicializar o banco com um clique
 
 - **SQL Runner Interativo**
@@ -18,16 +18,11 @@ Sistema de gerenciamento de submissão de artigos científicos desenvolvido como
   - Download de resultados em formato CSV
 
 - **12 Consultas Obrigatórias Pré-configuradas**
-  - JOINs simples e complexos (2-4 tabelas)
-  - LEFT JOINs para análise de dados ausentes
-  - Funções agregadas (COUNT, AVG, MAX, MIN)
-  - Agrupamentos (GROUP BY, HAVING)
-  - Ordenações personalizadas
-
-- **Exemplos de Comandos de Escrita**
-  - INSERT: Inserção de novos usuários
-  - UPDATE: Atualização de status de artigos
-  - DELETE: Remoção de revisões
+  - JOINs entre múltiplas tabelas
+  - LEFT JOINs para análise de dados opcionais
+  - Funções agregadas (COUNT, AVG, SUM)
+  - Agrupamentos com GROUP BY e HAVING
+  - Consultas com filtros e ordenações
 
 - **Dashboard de Estatísticas**
   - Contadores em tempo real de usuários, artigos e revisões
@@ -104,13 +99,14 @@ Experimente os exemplos no menu:
 
 ### Modelo Entidade-Relacionamento
 
-O banco possui **12 tabelas** organizadas em 4 módulos principais:
+O banco possui **13 tabelas** organizadas em 4 módulos principais:
 
 #### 1. Módulo de Usuários
-- **Usuario**: Dados básicos (ID, Nome, Email, Senha, Instituição)
-- **Autor**: Informações específicas de autores (ORCID, Bio)
-- **Revisor**: Dados de revisores (Áreas de Interesse, Nota Média)
+- **Usuario**: Dados básicos (ID, Nome, Email, Senha, Instituição, Data_Cadastro)
+- **Autor**: Informações específicas de autores (ORCID, Bio_Resumida)
+- **Revisor**: Dados de revisores (Nota_Media)
 - **Editor**: Informações de editores (Cargo, Ativo)
+- **Revisor_Area**: Relação N:N entre revisores e áreas de conhecimento
 
 #### 2. Módulo de Classificação
 - **Area**: Áreas do conhecimento (IA, Banco de Dados, Redes, etc.)
@@ -131,35 +127,31 @@ O banco possui **12 tabelas** organizadas em 4 módulos principais:
 ```
 Usuario
 ├── Autor ────> Autoria ────> Artigo ────> Edicao
-├── Revisor ──> Revisao ────┘                │
-└── Editor                                   ├── Edicao_Regular
-                                             └── Chamada_Especial
-
-Area <────> Artigo_Area <────> Artigo
+├── Revisor ──> Revisao ────┘     │          │
+│             │                   │          ├── Edicao_Regular
+│             └── Revisor_Area    │          └── Chamada_Especial
+└── Editor                        │
+                                  │
+Area <────> Artigo_Area <────────┘
+     └────> Revisor_Area
 ```
 
 ## Consultas Disponíveis
 
 ### Consultas Obrigatórias (1-12)
 
-1. **Listar Artigos e Autores** - JOIN de 3 tabelas
-2. **Artigos, Áreas e Edições** - JOIN de 4 tabelas
-3. **Revisores e Notas** - JOIN múltiplo com ordenação
-4. **Chamadas Especiais** - JOIN com filtro temporal
-5. **Editores e Cargos** - JOIN com CASE
-6. **Áreas sem artigos** - LEFT JOIN + HAVING
-7. **Usuários vs Autores** - LEFT JOIN para identificar não-autores
-8. **Média de Notas por Status** - AVG, MIN, MAX, GROUP BY
-9. **Contagem de Artigos por Área** - COUNT + ORDER BY
-10. **Total de Revisões por Revisor** - COUNT + HAVING
-11. **Nota Máxima/Mínima por Ano** - Agregações por ano
-12. **Autores com mais de 1 Artigo** - HAVING COUNT > 1
-
-### Exemplos de Comandos de Escrita
-
-- **INSERT - Novo Usuário** - Adiciona registro na tabela Usuario
-- **UPDATE - Atualizar Status** - Modifica status de artigo
-- **DELETE - Remover Revisão** - Remove registro de revisão
+1. **Listar Artigos e Anos de Edição** - JOIN simples entre Artigo e Edição
+2. **Autores e Seus Artigos** - JOIN de 3 tabelas (Usuario, Autoria, Artigo)
+3. **Revisores e Suas Áreas de Conhecimento** - JOIN de 4 tabelas usando Revisor_Area
+4. **Artigos com Pareceres e Notas** - JOIN entre Artigo, Revisao e Usuario
+5. **Chamadas Especiais e Datas Limite** - JOIN entre Chamada_Especial e Edicao
+6. **Usuários e Cargos de Editores** - LEFT JOIN mostrando todos os usuários
+7. **Áreas e Artigos Vinculados** - LEFT JOIN mostrando áreas sem artigos
+8. **Quantidade de Artigos por Status** - GROUP BY com HAVING COUNT > 1
+9. **Média de Notas por Revisor** - AVG com HAVING > 7.0
+10. **Áreas com 2+ Revisores** - COUNT com HAVING usando Revisor_Area
+11. **Edições por Soma de Notas** - SUM com HAVING > 10
+12. **Contagem de Artigos por Autor** - COUNT de artigos por autor
 
 ## Exemplos de Uso
 
@@ -188,11 +180,14 @@ WHERE ID_Usuario = 11;
 
 ## Dados Fictícios
 
-O banco é populado automaticamente com dados de cientistas da computação famosos:
+O banco é populado automaticamente com dados fictícios de exemplo:
 
-- **Autores**: Alan Turing, Grace Hopper, Ada Lovelace, Donald Knuth, Barbara Liskov, entre outros
-- **Artigos**: Trabalhos clássicos como "On Computable Numbers", "Computing Machinery and Intelligence"
-- **Áreas**: Inteligência Artificial, Sistemas Operacionais, Banco de Dados, Redes, etc.
+- **Usuários**: João Silva, Maria Santos, Pedro Souza, Ana Oliveira, entre outros (12 total)
+- **Autores**: 4 autores com ORCID
+- **Revisores**: 4 revisores vinculados a diferentes áreas
+- **Editores**: 4 editores com diferentes cargos
+- **Artigos**: 10 artigos sobre temas variados (IA, Banco de Dados, Segurança, IoT, etc.)
+- **Áreas**: 10 áreas do conhecimento (IA, Banco de Dados, Engenharia de Software, Redes, etc.)
 
 ## Arquivos do Projeto
 
